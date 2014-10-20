@@ -13,7 +13,7 @@ clean:
 test: clean buildTests executeTests
 
 buildTests:
-	g++ src/utils.cpp src/utils.spec.cpp -o build/unit.o
+	g++ src/hypercube_utils.cpp src/hypercube_utils.spec.cpp -o build/unit.o
 
 executeTests:
 	./build/unit.o
