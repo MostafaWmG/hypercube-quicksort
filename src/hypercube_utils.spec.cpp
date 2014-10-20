@@ -28,3 +28,37 @@ BOOST_AUTO_TEST_CASE(getCommLinkTest) {
   BOOST_CHECK(utils.getCommLink(3, 3) == 7);
   BOOST_CHECK(utils.getCommLink(3, 7) == 3);
 }
+
+BOOST_AUTO_TEST_CASE(shouldPassLargerListTest) {
+  HyperCubeUtils utils(3);
+
+  // first iteration
+  BOOST_CHECK(utils.shouldPassLargerList(1, 0) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 1) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 2) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 3) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 4) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 5) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 6) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(1, 7) == true);
+
+  // second iteration
+  BOOST_CHECK(utils.shouldPassLargerList(2, 0) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 1) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 2) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 3) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 4) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 5) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 6) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(2, 7) == true);
+
+  // third iteration
+  BOOST_CHECK(utils.shouldPassLargerList(3, 0) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 1) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 2) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 3) == false);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 4) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 5) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 6) == true);
+  BOOST_CHECK(utils.shouldPassLargerList(3, 7) == true);
+}
