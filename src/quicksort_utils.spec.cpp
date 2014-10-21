@@ -25,11 +25,7 @@ BOOST_AUTO_TEST_CASE(choosePivotTest) {
 
 BOOST_AUTO_TEST_CASE(choosePivotWorksWithDoubleTest) {
   QuicksortUtils utils;
-  double testArray[4];
-  testArray[0] = 2.2;
-  testArray[1] = 3.3;
-  testArray[2] = 4.4;
-  testArray[3] = 5.5;
+  double testArray[4] = {2.2, 3.3, 4.4, 5.5};
 
   for (int i = 0; i < 10; i++) {
     double pivot = utils.choosePivot(testArray, 4);
