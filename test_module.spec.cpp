@@ -9,3 +9,5 @@
 
 #define BOOST_TEST_MODULE "Hypercube Quicksort Unit Tests"
 #include <boost/test/included/unit_test.hpp>
+#include <stdlib.h>
+#include <time.h>
