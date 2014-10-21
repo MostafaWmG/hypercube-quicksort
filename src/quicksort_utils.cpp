@@ -32,6 +32,10 @@ public:
    * @param {Type} list The list to split.
    * @param {int} length The length of the list
    * @param {Type} pivot The pivot to split on
+   * @param {Type[]} lowArray The resulting lower array
+   * @param {Type[]} highArray The resulting higher array
+   * @param {int} lowArrayLength The resulting lower array length
+   * @param {int} highArrayLength The resulting higher array length
    */
   template <typename Type>
   void splitList (Type list[], int length, Type pivot, Type lowArray[], Type highArray[], int &lowArrayLength, int &highArrayLength) {
