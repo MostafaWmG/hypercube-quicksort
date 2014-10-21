@@ -53,3 +53,32 @@ BOOST_AUTO_TEST_CASE(concreteSplitListTest) {
     BOOST_ASSERT(highArray[i] >= pivot);
   }
 }
+
+BOOST_AUTO_TEST_CASE(randomSplitListTest) {
+  srand(time(NULL));
+  QuicksortUtils utils;
+  int trials = 100;
+  int length, pivot;
+  for (int j = 0; j < trials; j++) {
+    do {
+      length = rand() % 100;
+    } while (length == 0);
+    pivot = length / 2;
+    int testArray [length];
+    for (int i = 0; i < length; i++) {
+      testArray[i] = rand() % 100;
+    }
+    pivot = utils.choosePivot(testArray, length);
+    int lowArray[length];
+    int highArray[length];
+    int lowArrayLength = 0;
+    int highArrayLength = 0;
+    utils.splitList(testArray, length, pivot, lowArray, highArray, lowArrayLength, highArrayLength);
+    for (int i = 0; i < lowArrayLength; i++) {
+      BOOST_ASSERT(lowArray[i] < pivot);
+    }
+    for (int i = 0; i < highArrayLength; i++) {
+      BOOST_ASSERT(highArray[i] >= pivot);
+    }
+  }
+}
