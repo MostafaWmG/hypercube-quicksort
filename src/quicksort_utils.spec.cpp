@@ -33,3 +33,23 @@ BOOST_AUTO_TEST_CASE(choosePivotWorksWithDoubleTest) {
     BOOST_ASSERT(pivot <= 5.5);
   }
 }
+
+BOOST_AUTO_TEST_CASE(concreteSplitListTest) {
+  QuicksortUtils utils;
+  int length = 10;
+  int testArray[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int lowArray[length];
+  int highArray[length];
+  int lowArrayLength = 0;
+  int highArrayLength = 0;
+  int pivot = 4;
+  utils.splitList(testArray, length, pivot, lowArray, highArray, lowArrayLength, highArrayLength);
+  BOOST_ASSERT(lowArrayLength == 4);
+  BOOST_ASSERT(highArrayLength == 6);
+  for (int i = 0; i < 4; i++) {
+    BOOST_ASSERT(lowArray[i] < pivot);
+  }
+  for (int i = 0; i < 6; i++) {
+    BOOST_ASSERT(highArray[i] >= pivot);
+  }
+}
