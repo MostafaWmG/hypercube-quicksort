@@ -1,3 +1,5 @@
+testFiles=src/*.spec.cpp
+
 buildAll:
 	mpiCC -Wall src/sequential.cpp src/calculations.cpp -o build/sequential.o
 	mpiCC -Wall src/parallel.cpp src/calculations.cpp -o build/parallel.o
@@ -13,7 +15,7 @@ clean:
 test: clean buildTests executeTests
 
 buildTests:
-	g++ test_module.spec.cpp src/hypercube_utils.spec.cpp -o build/unit_tests.o
+	g++ test_module.spec.cpp $(testFiles) -o build/unit_tests.o
 
 executeTests:
 	./build/unit_tests.o
