@@ -1,6 +1,7 @@
-#define BOOST_TEST_MODULE Unit
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 #include "hypercube_utils.cpp"
+
+BOOST_AUTO_TEST_SUITE(HypercubeUtilsSuite);
 
 BOOST_AUTO_TEST_CASE(getCommLinkTest) {
   HyperCubeUtils utils(3);
@@ -62,3 +63,5 @@ BOOST_AUTO_TEST_CASE(shouldPassLargerListTest) {
   BOOST_CHECK(utils.shouldPassLargerList(3, 6) == true);
   BOOST_CHECK(utils.shouldPassLargerList(3, 7) == true);
 }
+
+BOOST_AUTO_TEST_SUITE_END();
