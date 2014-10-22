@@ -18,12 +18,20 @@ public:
    * @return {int} The chosen pivot
    */
   template <typename Type>
-  Type choosePivot (Type list[], int length) {
-    Type firstSample = list[rand() % length];
-    Type secondSample = list[rand() % length];
-    Type thirdSample = list[rand() % length];
-    Type pivot = (firstSample + secondSample + thirdSample) / 3;
-    return pivot;
+  int choosePivot (Type list[], int length) {
+    int firstIndex = rand() % length;
+    int secondIndex = rand() % length;
+    int thirdIndex = rand() % length;
+    Type firstSample = list[firstIndex];
+    Type secondSample = list[secondIndex];
+    Type thirdSample = list[thirdIndex];
+    if (firstSample >= secondSample && firstSample < thirdSample) {
+      return firstIndex;
+    }
+    if (secondSample >= firstSample && secondSample < thirdSample) {
+      return secondIndex;
+    }
+    return thirdIndex;
   }
 
 
@@ -39,17 +47,33 @@ public:
    * @param {int} highArrayLength The resulting higher array length
    */
   template <typename Type>
-  void splitList (Type list[], int length, Type pivot, Type lowArray[], Type highArray[], int &lowArrayLength, int &highArrayLength) {
-    lowArrayLength = 0;
-    highArrayLength = 0;
+  void split (Type list[], int length, int pivot, int &midIndex, int &lowLen, int &highLen) { 
+    Type tmp;
+    Type pivotValue = list[pivot];
+    int currentIndex = 0;
+    lowLen = 0;
+    highLen = 0;
+    tmp = list[pivot];
+    list[pivot] = list[length-1];
+    list[length-1] = tmp;
     for (int i = 0; i < length; i++) {
-      if (list[i] < pivot) {
-        lowArray[lowArrayLength] = list[i];
-        lowArrayLength += 1;
-      } else {
-        highArray[highArrayLength] = list[i];
-        highArrayLength += 1;
+      if(list[i] < pivotValue) {
+        tmp = list[currentIndex];
+        list[currentIndex] = list[i];
+        list[i] = tmp;
+        currentIndex += 1;
       }
+    }
+    tmp = list[length-1];
+    list[length-1] = list[currentIndex];
+    list[currentIndex] = tmp;
+    midIndex = currentIndex;
+    highLen = length - currentIndex;
+    lowLen = length - highLen;
+    if (midIndex == 0) {
+      midIndex = 1;
+      lowLen += 1;
+      highLen -= 1;
     }
   }
 
