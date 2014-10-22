@@ -15,6 +15,7 @@ public:
    *
    * @param {Type} list The list that we are sorting.  Type must implement addition and division.
    * @param {int} length The length of the list we are sorting
+   * @return {int} The chosen pivot
    */
   template <typename Type>
   Type choosePivot (Type list[], int length) {
