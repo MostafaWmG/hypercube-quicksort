@@ -4,7 +4,6 @@
 #include <iostream>
 #include <limits>
 #include "quicksort_utils.cpp"
-#include "hypercube_utils.cpp"
 
 int main (int argc, const char *argv[]) {
 
@@ -19,7 +18,6 @@ int main (int argc, const char *argv[]) {
    */
   srand(time(NULL));
   int *sortMe = new int[length];
-  int *sortMeDupe = new int[length];
   int randomNum;
   int intMax = std::numeric_limits<int>::max();
   for (int i = 0; i < length; i++) {
@@ -28,7 +26,7 @@ int main (int argc, const char *argv[]) {
     sortMeDupe[i] = randomNum;
   }
 
-  std::cout << "Generated two identical arrays of " << length << " integers between 0 and " << intMax << "\n";
+  std::cout << "Generated a large array of " << length << " integers between 0 and " << intMax << "\n";
 
   /**
    * Run sequential sort
@@ -41,5 +39,4 @@ int main (int argc, const char *argv[]) {
   gettimeofday(&endTime, NULL);
   timeElapsed = ((endTime.tv_sec - startTime.tv_sec) * 1000) + ((endTime.tv_usec - startTime.tv_usec) / 1000);
   std::cout << "Finished sequential quicksort in " << timeElapsed << " milliseconds\n";
-
 }
