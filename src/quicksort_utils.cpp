@@ -54,36 +54,5 @@ public:
   }
 
 
-  /**
-   * Performs a sequential quicksort
-   *
-   * @param {Type[]} list The list to sort
-   * @param {int} length The length of the list to sort
-   * @return {Type[]} The sorted list
-   */
-  template <typename Type>
-  Type* sort (Type list[], int length) {
-    if (length <= 1) { return list; }
-    Type pivot = choosePivot(list, length);
-    Type lowArray[length];
-    Type highArray[length];
-    Type *sortedLowArray;
-    Type *sortedHighArray;
-    int lowArrayLength = 0;
-    int highArrayLength = 0;
-    splitList(list, length, pivot, lowArray, highArray, lowArrayLength, highArrayLength);
-    sortedLowArray = sort(lowArray, lowArrayLength);
-    sortedHighArray = sort(highArray, highArrayLength);
-    length = 0;
-    for (int i = 0; i < lowArrayLength; i++) {
-      list[length] = lowArray[i];
-      length += 1;
-    }
-    for (int i = 0; i < highArrayLength; i++) {
-      list[length] = highArray[i];
-      length += 1;
-    }
-    return list;
-  }
 
 };

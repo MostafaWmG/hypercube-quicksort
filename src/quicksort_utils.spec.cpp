@@ -82,13 +82,3 @@ BOOST_AUTO_TEST_CASE(randomSplitListTest) {
     }
   }
 }
-
-BOOST_AUTO_TEST_CASE(concreteSortTest) {
-  QuicksortUtils utils;
-  int testArray[10] = {0, 9, 3, 5, 2, 4, 1, 6, 8, 7};
-  int* sortedArray;
-  sortedArray = utils.sort(testArray, 10);
-  for (int i = 0; i < 10; i++) {
-    BOOST_ASSERT(sortedArray[i] == i);
-  }
-}
