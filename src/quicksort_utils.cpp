@@ -78,5 +78,20 @@ public:
   }
 
 
+  /**
+   * Runs quicksort on a list
+   *
+   * @param {Type[]} list The list to sort
+   * @param {int} length The length of the list we are sorting
+   */
+  template <typename Type>
+  void sort (Type list[], int length) {
+    if (length == 1) { return; }
+    int pivot = choosePivot(list, length);
+    int midIndex, lowLen, highLen;
+    split(list, length, pivot, midIndex, lowLen, highLen);
+    sort(list, lowLen);
+    sort(&list[midIndex], highLen);
+  }
 
 };
