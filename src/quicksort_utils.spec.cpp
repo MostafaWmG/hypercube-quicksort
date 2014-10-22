@@ -97,3 +97,14 @@ BOOST_AUTO_TEST_CASE(randomSplitTest) {
     }
   }
 }
+
+BOOST_AUTO_TEST_CASE(concreteSortTestTwo) {
+  QuicksortUtils utils;
+  int length = 5, testList[5] = {2, 0, 2, 4, 2};
+  utils.sort(testList, 5);
+  BOOST_ASSERT(testList[0] == 0);
+  BOOST_ASSERT(testList[1] == 2);
+  BOOST_ASSERT(testList[2] == 2);
+  BOOST_ASSERT(testList[3] == 2);
+  BOOST_ASSERT(testList[4] == 4);
+}
