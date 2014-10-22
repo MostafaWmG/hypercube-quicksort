@@ -1,6 +1,6 @@
 #include <math.h>
 
-class HyperCubeUtils {
+class HypercubeUtils {
 
 private:
 
@@ -11,7 +11,7 @@ private:
 
 public:
 
-  HyperCubeUtils (int dimensions) {
+  HypercubeUtils (int dimensions) {
     this->dimensions = dimensions;
   }
 

@@ -4,7 +4,7 @@
 BOOST_AUTO_TEST_SUITE(HypercubeUtilsSuite);
 
 BOOST_AUTO_TEST_CASE(getCommLinkTest) {
-  HyperCubeUtils utils(3);
+  HypercubeUtils utils(3);
 
   // first iteration
   BOOST_CHECK(utils.getCommLink(1, 0) == 1);
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(getCommLinkTest) {
 }
 
 BOOST_AUTO_TEST_CASE(shouldPassLargerListTest) {
-  HyperCubeUtils utils(3);
+  HypercubeUtils utils(3);
 
   // first iteration
   BOOST_CHECK(utils.shouldPassLargerList(1, 0) == false);
