@@ -39,6 +39,8 @@ public:
    */
   template <typename Type>
   void splitList (Type list[], int length, Type pivot, Type lowArray[], Type highArray[], int &lowArrayLength, int &highArrayLength) {
+    lowArrayLength = 0;
+    highArrayLength = 0;
     for (int i = 0; i < length; i++) {
       if (list[i] < pivot) {
         lowArray[lowArrayLength] = list[i];
