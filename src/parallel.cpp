@@ -117,30 +117,67 @@ int main (int argc, const char *argv[]) {
   printBuffer(receiveBuffer, scatter_sizes[rank]);
   cout << endl;
 
-  /**
-   * Broadcast pivot
-   */
-  int iteration = 1;
-  int pivot;
-  if (rank == 0) {
-    pivot = q_utils.choosePivot(receiveBuffer, scatter_sizes[rank]);
-    cout << "0: chose pivot as " << pivot << endl;
-  }
-  MPI_Bcast(&pivot, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
 
   /**
-   * Split list
+   * Initialize compare & exchange loop
    */
-  int midIndex;
-  int lowLen;
-  int highLen;
-  q_utils.split(receiveBuffer, scatter_sizes[rank], pivot, midIndex, lowLen, highLen);
-  cout << rank << ": lowlist ";
-  printBuffer(receiveBuffer, lowLen);
-  cout << ", highlist ";
-  printBuffer(&receiveBuffer[midIndex], highLen);
-  cout << ", highlen " << highLen << ", lowlen " << lowLen;
-  cout << endl;
+  hypercubeDimensions = 1;
+  MPI_Comm currentComm = MPI_COMM_WORLD;
+  int currRank = rank;
+  for (int iteration = 1; iteration <= hypercubeDimensions; iteration++) {
+
+    /**
+     * Broadcast pivot
+     */
+    int pivot;
+    if (currRank == MASTER) {
+      pivot = q_utils.choosePivot(receiveBuffer, scatter_sizes[currRank]);
+      cout << "0: chose pivot as " << pivot << endl;
+    }
+    MPI_Bcast(&pivot, 1, MPI_INT, MASTER, currentComm);
+
+    /**
+     * Split list
+     */
+    int midIndex;
+    int lowLen;
+    int highLen;
+    q_utils.split(receiveBuffer, scatter_sizes[currRank], pivot, midIndex, lowLen, highLen);
+    cout << rank << ": lowlist ";
+    printBuffer(receiveBuffer, lowLen);
+    cout << ", highlist ";
+    printBuffer(&receiveBuffer[midIndex], highLen);
+    cout << ", highlen " << highLen << ", lowlen " << lowLen;
+    cout << endl;
+
+    /**
+     * Compare & exchange
+     */
+    int rankToExchangeWith = h_utils.getCommLink(iteration, rank);
+    bool shouldPassLargeList = h_utils.shouldPassLargerList(iteration, rank);
+    int sendLen = shouldPassLargeList ? highLen : lowLen;
+    int keepLen = shouldPassLargeList ? lowLen : highLen;
+    int *keepStart = shouldPassLargeList ? receiveBuffer : &receiveBuffer[midIndex];
+    int *sendStart = shouldPassLargeList ? &receiveBuffer[midIndex] : receiveBuffer;
+    int recvLen;
+    int tag1 = 1;
+    int tag2 = 2;
+    MPI_Sendrecv(&sendLen, 1, MPI_INT, rankToExchangeWith, tag1, &recvLen, 1, MPI_INT, rankToExchangeWith, tag1, currentComm, NULL);
+    int receiveArray[recvLen + keepLen];
+    MPI_Sendrecv(sendStart, sendLen, MPI_INT, rankToExchangeWith, tag2, receiveArray, recvLen, MPI_INT, rankToExchangeWith, tag2, currentComm, NULL);
+    for (int i = 0; i < keepLen; i++) {
+      receiveArray[recvLen + i] = keepStart[i];
+    }
+    cout << rank << ": received array ";
+    printBuffer(receiveArray, recvLen + keepLen);
+    cout << " from " << rankToExchangeWith << endl;
+
+    /**
+     * Divide communicator
+     */
+     
+  }
+
 
   /**
    * Close up MPI
