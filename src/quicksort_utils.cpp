@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+using namespace std;
+
 class QuicksortUtils {
   
 public:
@@ -26,12 +28,12 @@ public:
     Type secondSample = list[secondIndex];
     Type thirdSample = list[thirdIndex];
     if (firstSample >= secondSample && firstSample < thirdSample) {
-      return firstIndex;
+      return firstSample;
     }
     if (secondSample >= firstSample && secondSample < thirdSample) {
-      return secondIndex;
+      return secondSample;
     }
-    return thirdIndex;
+    return thirdSample;
   }
 
 
@@ -47,34 +49,25 @@ public:
    * @param {int} highArrayLength The resulting higher array length
    */
   template <typename Type>
-  void split (Type list[], int length, int pivot, int &midIndex, int &lowLen, int &highLen) { 
-    Type tmp;
-    Type pivotValue = list[pivot];
-    int currentIndex = 0;
+  void split (Type list[], int length, Type pivot, int &midIndex, int &lowLen, int &highLen) { 
+    int i = 0;
     lowLen = 0;
-    highLen = 0;
-    tmp = list[pivot];
-    list[pivot] = list[length-1];
-    list[length-1] = tmp;
-    for (int i = 0; i < length; i++) {
-      if(list[i] < pivotValue) {
-        tmp = list[currentIndex];
-        list[currentIndex] = list[i];
-        list[i] = tmp;
-        currentIndex += 1;
-      }
-    }
-    tmp = list[length-1];
-    list[length-1] = list[currentIndex];
-    list[currentIndex] = tmp;
-    midIndex = currentIndex;
-    highLen = length - currentIndex;
-    lowLen = length - highLen;
-    if (midIndex == 0) {
-      midIndex = 1;
+    while(list[i] <= pivot && i < length) {
+      i += 1;
       lowLen += 1;
-      highLen -= 1;
     }
+    midIndex = i;
+    while(i < length) {
+      if(list[i] <= pivot) {
+        Type tmp = list[i];
+        list[i] = list[midIndex];
+        list[midIndex] = tmp;
+        midIndex += 1;
+        lowLen += 1;
+      }
+      i += 1;
+    }
+    highLen = length - lowLen;
   }
 
 
