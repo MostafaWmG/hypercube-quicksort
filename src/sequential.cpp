@@ -8,9 +8,9 @@
 int main (int argc, const char *argv[]) {
 
   /**
-   * Options
+   * Initialize
    */
-  int length = 9999999; // number of items to sort
+  int length = atoi(argv[1]);
   QuicksortUtils q_utils;
 
   /**
@@ -18,12 +18,9 @@ int main (int argc, const char *argv[]) {
    */
   srand(time(NULL));
   int *sortMe = new int[length];
-  int randomNum;
   int intMax = std::numeric_limits<int>::max();
   for (int i = 0; i < length; i++) {
-    randomNum = rand();
-    sortMe[i] = randomNum;
-    sortMeDupe[i] = randomNum;
+    sortMe[i] = rand();
   }
 
   std::cout << "Generated a large array of " << length << " integers between 0 and " << intMax << "\n";
