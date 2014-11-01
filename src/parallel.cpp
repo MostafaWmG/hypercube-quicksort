@@ -121,9 +121,13 @@ int main (int argc, const char *argv[]) {
   /**
    * Initialize compare & exchange loop
    */
-  hypercubeDimensions = 1;
+  // hypercubeDimensions = 1;
   MPI_Comm currentComm = MPI_COMM_WORLD;
   int currRank = rank;
+  int currSize = size;
+  int *currBuffer = receiveBuffer;
+  int currBufferSize = scatter_sizes[currRank];
+  int tag = 0;
   for (int iteration = 1; iteration <= hypercubeDimensions; iteration++) {
 
     /**
@@ -131,8 +135,8 @@ int main (int argc, const char *argv[]) {
      */
     int pivot;
     if (currRank == MASTER) {
-      pivot = q_utils.choosePivot(receiveBuffer, scatter_sizes[currRank]);
-      cout << "0: chose pivot as " << pivot << endl;
+      pivot = q_utils.choosePivot(currBuffer, currBufferSize);
+      cout << rank << ": broadcasting pivot as " << pivot << " at iteration " << iteration << endl;
     }
     MPI_Bcast(&pivot, 1, MPI_INT, MASTER, currentComm);
 
@@ -142,12 +146,12 @@ int main (int argc, const char *argv[]) {
     int midIndex;
     int lowLen;
     int highLen;
-    q_utils.split(receiveBuffer, scatter_sizes[currRank], pivot, midIndex, lowLen, highLen);
-    cout << rank << ": lowlist ";
-    printBuffer(receiveBuffer, lowLen);
-    cout << ", highlist ";
-    printBuffer(&receiveBuffer[midIndex], highLen);
-    cout << ", highlen " << highLen << ", lowlen " << lowLen;
+    q_utils.split(currBuffer, currBufferSize, pivot, midIndex, lowLen, highLen);
+
+    cout << rank << ", " << iteration << ": low array ";
+    printBuffer(currBuffer, lowLen);
+    cout << ", high array ";
+    printBuffer(&currBuffer[midIndex], highLen);
     cout << endl;
 
     /**
@@ -157,26 +161,47 @@ int main (int argc, const char *argv[]) {
     bool shouldPassLargeList = h_utils.shouldPassLargerList(iteration, rank);
     int sendLen = shouldPassLargeList ? highLen : lowLen;
     int keepLen = shouldPassLargeList ? lowLen : highLen;
-    int *keepStart = shouldPassLargeList ? receiveBuffer : &receiveBuffer[midIndex];
-    int *sendStart = shouldPassLargeList ? &receiveBuffer[midIndex] : receiveBuffer;
+    int *keepStart = shouldPassLargeList ? currBuffer : &currBuffer[midIndex];
+    int *sendStart = shouldPassLargeList ? &currBuffer[midIndex] : currBuffer;
     int recvLen;
     int tag1 = 1;
     int tag2 = 2;
-    MPI_Sendrecv(&sendLen, 1, MPI_INT, rankToExchangeWith, tag1, &recvLen, 1, MPI_INT, rankToExchangeWith, tag1, currentComm, NULL);
-    int receiveArray[recvLen + keepLen];
-    MPI_Sendrecv(sendStart, sendLen, MPI_INT, rankToExchangeWith, tag2, receiveArray, recvLen, MPI_INT, rankToExchangeWith, tag2, currentComm, NULL);
-    for (int i = 0; i < keepLen; i++) {
-      receiveArray[recvLen + i] = keepStart[i];
-    }
-    cout << rank << ": received array ";
-    printBuffer(receiveArray, recvLen + keepLen);
+
+    cout << rank << ", " << iteration << ": sending " << sendLen << " elements ";
+    printBuffer(sendStart, sendLen);
+    cout << " to " << rankToExchangeWith << endl;
+
+    MPI_Sendrecv(&sendLen, 1, MPI_INT, rankToExchangeWith, tag, &recvLen, 1, MPI_INT, rankToExchangeWith, tag, MPI_COMM_WORLD, NULL);
+    tag += 1;
+    int totalSize = recvLen + keepLen;
+    int receiveArray[totalSize];
+    MPI_Sendrecv(sendStart, sendLen, MPI_INT, rankToExchangeWith, tag, receiveArray, recvLen, MPI_INT, rankToExchangeWith, tag, MPI_COMM_WORLD, NULL);
+    tag += 1;
+    memcpy(&receiveArray[recvLen], keepStart, keepLen * sizeof(int));
+
+    cout << rank << ", " << iteration << ": received " << recvLen << " elements ";
+    printBuffer(receiveArray, recvLen);
     cout << " from " << rankToExchangeWith << endl;
 
     /**
      * Divide communicator
      */
-     
+    MPI_Comm newComm;
+    int color = currRank >= currSize / 2 ? 1 : 0;
+    int nextRank = color == 1 ? currRank - currSize / 2 : currRank;
+    MPI_Comm_split(currentComm, color, nextRank, &newComm);
+    currentComm = newComm;
+    currRank = nextRank;
+    currSize = currSize / 2;
+
+    currBuffer = receiveArray;
+    currBufferSize = recvLen + keepLen;
+
+    cout << rank << ", " << iteration << ": array ";
+    printBuffer(currBuffer, currBufferSize);
+    cout << endl;
   }
+
 
 
   /**
