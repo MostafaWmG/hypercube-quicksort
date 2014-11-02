@@ -27,7 +27,7 @@ int main (int argc, const char *argv[]) {
    * Initialize
    */
   int length = atoi(argv[1]);
-  int rank, size, hypercubeDimensions, sortMe[length], MASTER = 0;
+  int rank, size, sortMe[length], MASTER = 0;
   bool IS_MASTER, IS_SLAVE;
   QuicksortUtils q_utils;
 
@@ -40,12 +40,12 @@ int main (int argc, const char *argv[]) {
   /**
    * Check that the user initialized a hypercube
    */
-  int e = 1;
+  int hypercubeDimensions = 1;
   int sizee;
-  sizee = pow(2, e);
+  sizee = pow(2, hypercubeDimensions);
   while (sizee < size) {
-    e += 1;
-    sizee = pow(2, e);
+    hypercubeDimensions += 1;
+    sizee = pow(2, hypercubeDimensions);
   }
 
   if (sizee != size) {
@@ -85,7 +85,6 @@ int main (int argc, const char *argv[]) {
   /**
    * Initialize hypercube utils
    */
-  hypercubeDimensions = e;
   HypercubeUtils h_utils(hypercubeDimensions);
 
 
@@ -111,14 +110,78 @@ int main (int argc, const char *argv[]) {
     printBuffer(sortMe, length);
     cout << endl;
   }
-  int currBuffer[scatter_sizes[rank]];
-  MPI_Scatterv(sortMe, scatter_sizes, scatter_offsets, MPI_INT, &currBuffer, scatter_sizes[rank], MPI_INT, MASTER, MPI_COMM_WORLD);
+  int *currBuffer;
+  int currBufferSize = scatter_sizes[rank];
+  currBuffer = new int [currBufferSize];
+  MPI_Scatterv(sortMe, scatter_sizes, scatter_offsets, MPI_INT, currBuffer, currBufferSize, MPI_INT, MASTER, MPI_COMM_WORLD);
   cout << rank << ": Received array ";
-  printBuffer(currBuffer, scatter_sizes[rank]);
+  printBuffer(currBuffer, currBufferSize);
   cout << endl;
 
 
- 
+  
+  /**
+   * Iterate compare & exchange
+   */
+  MPI_Comm currComm = MPI_COMM_WORLD;
+  for (int iteration = 1; iteration <= hypercubeDimensions; iteration++) {
+
+    // choose & broadcast pivot
+    int currentRank;
+    int pivot;
+    MPI_Comm_rank(currComm, &currentRank);
+    if (currentRank == 0) {
+      pivot = q_utils.choosePivot(currBuffer, currBufferSize);
+      cout << rank << ", " << iteration << ": chose current pivot as " << pivot << endl;
+    }
+    MPI_Bcast(&pivot, 1, MPI_INT, 0, currComm);
+
+    // split array
+    int midIndex, lowLen, highLen;
+    q_utils.split(currBuffer, currBufferSize, pivot, midIndex, lowLen, highLen);
+
+    // determine details for this communication
+    bool shouldPassLargerList = h_utils.shouldPassLargerList(iteration, rank);
+    int commLink = h_utils.getCommLink(iteration, rank);
+    int recvLen;
+
+    // send size
+    if (shouldPassLargerList) {
+      MPI_Sendrecv(&highLen, 1, MPI_INT, commLink, 0, &recvLen, 1, MPI_INT, commLink, 0, MPI_COMM_WORLD, NULL);
+    } else {
+      MPI_Sendrecv(&lowLen, 1, MPI_INT, commLink, 0, &recvLen, 1, MPI_INT, commLink, 0, MPI_COMM_WORLD, NULL);
+    }
+
+    // initialize new array
+    int keepLen = shouldPassLargerList ? lowLen : highLen;
+    int *recvBuffer;
+    recvBuffer = new int [recvLen + keepLen];
+
+    // send array
+    if (shouldPassLargerList) {
+      MPI_Sendrecv(&currBuffer[midIndex], highLen, MPI_INT, commLink, 1, recvBuffer, recvLen, MPI_INT, commLink, 1, MPI_COMM_WORLD, NULL);
+    } else {
+      MPI_Sendrecv(currBuffer, lowLen, MPI_INT, commLink, 1, recvBuffer, recvLen, MPI_INT, commLink, 1, MPI_COMM_WORLD, NULL);
+    }
+
+    // copy array
+    if (shouldPassLargerList) {
+      memcpy(&recvBuffer[recvLen], currBuffer, lowLen * sizeof(int));
+    } else {
+      memcpy(&recvBuffer[recvLen], &currBuffer[midIndex], highLen * sizeof(int));
+    }
+
+    delete[] currBuffer;
+    currBuffer = recvBuffer;
+    currBufferSize = recvLen + keepLen;
+
+    // split communicator
+    MPI_Comm nextComm;
+    int nextGroup = h_utils.getNextGroup(iteration, rank);
+    MPI_Comm_split(currComm, nextGroup, rank, &nextComm);
+    currComm = nextComm;
+  }
+
 
 
   /**
