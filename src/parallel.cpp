@@ -114,9 +114,6 @@ int main (int argc, const char *argv[]) {
   int currBufferSize = scatter_sizes[rank];
   currBuffer = new int [currBufferSize];
   MPI_Scatterv(sortMe, scatter_sizes, scatter_offsets, MPI_INT, currBuffer, currBufferSize, MPI_INT, MASTER, MPI_COMM_WORLD);
-  cout << rank << ": Received array ";
-  printBuffer(currBuffer, currBufferSize);
-  cout << endl;
 
 
   
@@ -132,7 +129,6 @@ int main (int argc, const char *argv[]) {
     MPI_Comm_rank(currComm, &currentRank);
     if (currentRank == 0) {
       pivot = q_utils.choosePivot(currBuffer, currBufferSize);
-      cout << rank << ", " << iteration << ": chose current pivot as " << pivot << endl;
     }
     MPI_Bcast(&pivot, 1, MPI_INT, 0, currComm);
 
@@ -181,6 +177,20 @@ int main (int argc, const char *argv[]) {
     MPI_Comm_split(currComm, nextGroup, rank, &nextComm);
     currComm = nextComm;
   }
+
+
+  /**
+   * Perform sequential quicksort
+   */
+  cout << rank << ": unsorted array ";
+  printBuffer(currBuffer, currBufferSize);
+  cout << endl;
+
+  q_utils.sort(currBuffer, currBufferSize);
+
+  cout << rank << ": sorted array ";
+  printBuffer(currBuffer, currBufferSize);
+  cout << endl;
 
 
 

@@ -1,6 +1,99 @@
 #include <boost/test/unit_test.hpp>
 #include "quicksort_utils.cpp"
 
+BOOST_AUTO_TEST_CASE(choosePivotTest) {
+  srand(time(NULL));
+  QuicksortUtils utils;
+  int testArray[8] = {0,1,2,3,4,5,6,7};
+  utils.choosePivot(testArray, 8);
+}
+
+BOOST_AUTO_TEST_CASE(splitTTTest) {
+  srand(time(NULL));
+  QuicksortUtils utils;
+  int testArray[8] = {1, 5, 3, 5, 6, 2, 3, 6};
+  for (int j = 0; j < 100; j++) {
+    int pivot = rand() % 6;
+    int midIndex, highLen, lowLen;
+    utils.split(testArray, 8, pivot, midIndex, highLen, lowLen);
+    for (int i = 0; i < midIndex; i++) {
+      BOOST_ASSERT(testArray[i] <= pivot);
+    }
+    for (int i = midIndex; i < 8; i++) {
+      BOOST_ASSERT(testArray[i] > pivot);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(splitTest) {
+  srand(time(NULL));
+  QuicksortUtils utils;
+  for (int i = 0; i < 100; i++) {
+    int testArray[100];
+    int pivot = rand() % 100;
+    int midIndex, highLen, lowLen;
+    for (int j = 0; j < 100; j++) {
+      testArray[j] = rand() % 100;
+    }
+    utils.split(testArray, 100, pivot, midIndex, highLen, lowLen);
+    for (int j = 0; j < midIndex; j++) {
+      BOOST_ASSERT(testArray[j] <= pivot);
+    }
+    for (int j = midIndex; j < 100; j++) {
+      BOOST_ASSERT(testArray[j] > pivot);
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(splitteyTester) {
+  QuicksortUtils utils;
+  int testArray[4] = {3, 5, 5, 3};
+  int midIndex, highLen, lowLen;
+  utils.split(testArray, 4, 3, midIndex, highLen, lowLen);
+  BOOST_ASSERT(testArray[0] == 3);
+  BOOST_ASSERT(testArray[1] == 3);
+  BOOST_ASSERT(testArray[2] == 5);
+  BOOST_ASSERT(testArray[3] == 5);
+}
+
+BOOST_AUTO_TEST_CASE(sorterz) {
+  QuicksortUtils utils;
+  srand(time(NULL));
+  int testArray[4] = {3, 5, 5, 3};
+  utils.sort(testArray, 4);
+  BOOST_ASSERT(testArray[0] == 3);
+  BOOST_ASSERT(testArray[1] == 3);
+  BOOST_ASSERT(testArray[2] == 5);
+  BOOST_ASSERT(testArray[3] == 5);
+}
+
+BOOST_AUTO_TEST_CASE(splittz) {
+  QuicksortUtils utils;
+  int testArray[6] = {3, 5, 6, 5, 3, 6};
+  int midIndex, highLen, lowLen;
+  utils.split(testArray, 6, 5, midIndex, highLen, lowLen);
+  for (int i = 0; i < midIndex; i++) {
+    BOOST_ASSERT(testArray[i] <= 5);
+  }
+  for (int i = midIndex; i < 6; i++) {
+    BOOST_ASSERT(testArray[i] > 5);
+  }
+  BOOST_ASSERT(midIndex == 4);
+}
+
+BOOST_AUTO_TEST_CASE(sortTest) {
+  srand(time(NULL));
+  QuicksortUtils utils;
+  for (int j = 0; j < 100; j++) {
+    int testArray[8] = {1, 5, 3, 5, 6, 2, 3, 6};
+    int sortedArray[8] = {1, 2, 3, 3, 5, 5, 6, 6};
+    utils.sort(testArray, 8);
+    for (int i = 0; i < 8; i++) {
+      BOOST_ASSERT(testArray[i] == sortedArray[i]);
+    }
+  }
+}
+
 // BOOST_AUTO_TEST_CASE(choosePivotTest) {
 //   srand(time(NULL));
 //   QuicksortUtils utils;

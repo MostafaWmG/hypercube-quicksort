@@ -79,12 +79,21 @@ public:
    */
   template <typename Type>
   void sort (Type list[], int length) {
-    if (length == 1) { return; }
-    int pivot = choosePivot(list, length);
-    int midIndex, lowLen, highLen;
-    split(list, length, pivot, midIndex, lowLen, highLen);
-    sort(list, lowLen);
-    sort(&list[midIndex], highLen);
+    if (length > 1) {
+      bool same = true;
+      for (int i = 0; i < length - 1; i++) {
+        if (list[i] != list[i+1]) {
+          same = false;
+          break;
+        }
+      }
+      if (same) { return; }
+      Type pivot = choosePivot(list, length);
+      int midIndex, lowLen, highLen;
+      split(list, length, pivot, midIndex, lowLen, highLen);
+      sort(list, lowLen);
+      sort(&list[midIndex], highLen);
+    }
   }
 
 };
