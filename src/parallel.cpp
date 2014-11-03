@@ -27,15 +27,15 @@ int main (int argc, const char *argv[]) {
    * Initialize
    */
   int length = atoi(argv[1]);
-  int rank, size, sortMe[length], MASTER = 0;
-  bool IS_MASTER, IS_SLAVE;
+  int rank, size, MASTER = 0;
+  int* sortMe;
+  bool IS_MASTER;
   QuicksortUtils q_utils;
 
   MPI_Init(NULL, NULL);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   IS_MASTER = rank == 0;
-  IS_SLAVE = ! IS_MASTER;
 
   /**
    * Check that the user initialized a hypercube
@@ -55,6 +55,36 @@ int main (int argc, const char *argv[]) {
     }
     MPI_Finalize();
     exit(0);
+  }
+
+  /**
+   * Initialize hypercube utils
+   */
+  HypercubeUtils h_utils(hypercubeDimensions);
+
+
+  /**
+   * Generate a large random array
+   */
+  if (IS_MASTER) {
+    srand(time(NULL));
+    int intMax = std::numeric_limits<int>::max();
+    sortMe = (int *) malloc(length * sizeof(int));
+    for (int i = 0; i < length + 1; i++) {
+      sortMe[i] = rand();
+    }
+
+    std::cout << rank << ": Generated an array of " << length << " random integers between 0 and " << intMax << endl;
+  }
+
+  /**
+   * Initialize the timer
+   */
+  struct timeval startTime, endTime;
+  suseconds_t timeElapsed;
+  if (IS_MASTER) {
+    std::cout << "Starting timer \n";
+    gettimeofday(&startTime, NULL);
   }
 
   /** 
@@ -78,43 +108,21 @@ int main (int argc, const char *argv[]) {
   }
   if (IS_MASTER) {
     for (int i = 0; i < size; i++) {
-      cout << "0: Sending " << scatter_sizes[i] << " elements to " << i << " starting at element " << scatter_offsets[i] << endl;
+      cout << "Sending " << scatter_sizes[i] << " elements to process " << i << endl;
     }
   }
 
-  /**
-   * Initialize hypercube utils
-   */
-  HypercubeUtils h_utils(hypercubeDimensions);
-
-
-  /**
-   * Generate a large random array
-   */
-  if (IS_MASTER) {
-    // srand(time(NULL));
-    srand(0);
-    int intMax = std::numeric_limits<int>::max();
-    for (int i = 0; i < length + 1; i++) {
-      sortMe[i] = rand() % 10;
-    }
-
-    std::cout << rank << ": Generated an array of " << length << " random integers between 0 and " << intMax << endl;
-  }
 
   /**
    * Scatter array
    */
-  if(IS_MASTER) {
-    cout << "Initial array: ";
-    printBuffer(sortMe, length);
-    cout << endl;
-  }
   int *currBuffer;
   int currBufferSize = scatter_sizes[rank];
   currBuffer = new int [currBufferSize];
   MPI_Scatterv(sortMe, scatter_sizes, scatter_offsets, MPI_INT, currBuffer, currBufferSize, MPI_INT, MASTER, MPI_COMM_WORLD);
-
+  if (IS_MASTER) {
+    delete[] sortMe;
+  }
 
   
   /**
@@ -182,17 +190,38 @@ int main (int argc, const char *argv[]) {
   /**
    * Perform sequential quicksort
    */
-  cout << rank << ": unsorted array ";
-  printBuffer(currBuffer, currBufferSize);
-  cout << endl;
-
   q_utils.sort(currBuffer, currBufferSize);
 
-  cout << rank << ": sorted array ";
-  printBuffer(currBuffer, currBufferSize);
-  cout << endl;
+
+  /**
+   * Gather all values
+   */
+  int *gatherSizes, *displacements;
+  if (IS_MASTER) { 
+    gatherSizes = (int*) malloc(size * sizeof(int)); 
+    displacements = (int*) malloc(size * sizeof(int));
+  }
+  MPI_Gather(&currBufferSize, 1, MPI_INT, gatherSizes, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
+  if (IS_MASTER) {
+    displacements[0] = 0;
+    for (int i = 1; i < size; i++) {
+      displacements[i] = displacements[i-1] + gatherSizes[i-1];
+    }
+    sortMe = (int*) malloc(length * sizeof(int));
+  }
+  MPI_Gatherv(currBuffer, currBufferSize, MPI_INT, sortMe, gatherSizes, displacements, MPI_INT, MASTER, MPI_COMM_WORLD);
 
 
+
+  /**
+   * Finish timer
+   */
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (IS_MASTER) {
+    gettimeofday(&endTime, NULL);
+    timeElapsed = ((endTime.tv_sec - startTime.tv_sec) * 1000) + ((endTime.tv_usec - startTime.tv_usec) / 1000);
+    std::cout << "Finished parallel quicksort in " << timeElapsed << " milliseconds\n";
+  }
 
   /**
    * Close up MPI
